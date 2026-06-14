@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Grid Preview · Notion's Key</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #111; padding: 16px; }
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+  .handle { font-size: 14px; font-weight: 600; }
+  .handle span { font-size: 12px; font-weight: 400; color: #888; display: block; }
+  .tabs { display: flex; border-bottom: 1px solid #eee; margin-bottom: 16px; }
+  .tab { padding: 7px 14px; font-size: 12px; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: #111; border-bottom-color: #111; font-weight: 600; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; margin-bottom: 12px; }
+  .cell { aspect-ratio:1; background: #f5f5f5; overflow: hidden; position: relative; border-radius: 2px; }
+  .cell img { width:100%; height:100%; object-fit:cover; display:block; }
+  .cell .empty { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#bbb; font-size:10px; }
+  .cell .num { position:absolute; top:3px; left:3px; background:rgba(0,0,0,0.45); color:#fff; border-radius:3px; font-size:9px; padding:1px 4px; }
+  .cell .badge { position:absolute; bottom:3px; right:3px; color:#fff; border-radius:3px; font-size:9px; padding:1px 4px; }
+  .cell.next { outline: 2px solid #E1306C; outline-offset: -2px; }
+  .legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .leg { display:flex; align-items:center; gap:4px; font-size:10px; color:#888; }
+  .dot { width:8px; height:8px; border-radius:2px; }
+  .tip { font-size:11px; color:#aaa; background:#f9f9f9; padding:7px 10px; border-radius:6px; }
+  .slots { display:flex; flex-direction:column; gap:7px; }
+  .row { display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid #eee; border-radius:8px; }
+  .row.next-row { border-color:#E1306C; }
+  .nbadge { width:20px; height:20px; border-radius:50%; background:#f0f0f0; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:#888; flex-shrink:0; }
+  .row.next-row .nbadge { background:#E1306C; color:#fff; }
+  .prev-img { width:32px; height:32px; border-radius:3px; object-fit:cover; border:1px solid #eee; flex-shrink:0; background:#f5f5f5; }
+  .url-input { flex:1; font-size:11px; padding:4px 7px; border:1px solid #eee; border-radius:6px; min-width:0; color:#111; }
+  .type-sel { font-size:10px; padding:3px 5px; border:1px solid #ddd; border-radius:12px; background:#f9f9f9; color:#555; cursor:pointer; flex-shrink:0; }
+  .clr { background:none; border:none; cursor:pointer; color:#ccc; font-size:14px; }
+  .clr:hover { color:#E1306C; }
+  .add-btn { width:100%; padding:7px; border:1px dashed #ddd; border-radius:8px; background:none; color:#aaa; font-size:12px; cursor:pointer; margin-top:7px; }
+  .add-btn:hover { background:#f9f9f9; }
+  .info-block { background:#f9f9f9; border-radius:8px; padding:12px; margin-bottom:10px; }
+  .info-block h3 { font-size:12px; font-weight:600; margin-bottom:6px; }
+  .info-block p { font-size:11px; color:#666; line-height:1.6; margin-bottom:4px; }
+  .code-snippet { font-family:monospace; font-size:10px; background:#fff; border:1px solid #eee; border-radius:5px; padding:6px 8px; margin:5px 0; word-break:break-all; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="avatar"><i class="ti ti-brand-instagram"></i></div>
+  <div>
+    <div class="handle">@notionskey <span>Instagram Grid Preview</span></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('grid')">Grid preview</button>
+  <button class="tab" onclick="switchTab('manage')">Gestionar posts</button>
+  <button class="tab" onclick="switchTab('embed')">Cómo usar</button>
+</div>
+
+<div id="panel-grid" class="panel active">
+  <div class="legend">
+    <div class="leg"><div class="dot" style="background:#E1306C;outline:2px solid #E1306C;outline-offset:1px"></div>Próximo post</div>
+    <div class="leg"><div class="dot" style="background:#833AB4"></div>Foto</div>
+    <div class="leg"><div class="dot" style="background:#E1306C"></div>Reel</div>
+    <div class="leg"><div class="dot" style="background:#F58529"></div>Carrusel</div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="tip">El post 1 (borde rosa) es el próximo a publicar. El grid se lee de izquierda a derecha.</p>
+</div>
+
+<div id="panel-manage" class="panel">
+  <div class="slots" id="slots-list"></div>
+  <button class="add-btn" onclick="addSlot()">+ Agregar post</button>
+</div>
+
+<div id="panel-embed" class="panel">
+  <div class="info-block">
+    <h3>Cómo embeber en Notion</h3>
+    <p>1. Publicá este archivo en GitHub Pages o Netlify</p>
+    <p>2. En Notion escribí /embed</p>
+    <p>3. Pegá la URL de tu widget</p>
+    <p>4. El grid queda dentro de tu calendario de contenido</p>
+  </div>
+  <div class="info-block">
+    <h3>Links de imagen compatibles</h3>
+    <p>Usá links que terminen en .jpg .png .webp o links de Cloudinary/Imgur.</p>
+    <p>Para Google Drive usá este formato:</p>
+    <div class="code-snippet">https://drive.google.com/uc?export=view&id=ID_ARCHIVO</div>
+  </div>
+</div>
+
+<script>
+const TYPES={foto:'#833AB4',reel:'#E1306C',carrusel:'#F58529',story:'#405DE6'};
+let slots=[
+  {url:'',type:'foto'},{url:'',type:'reel'},{url:'',type:'carrusel'},
+  {url:'',type:'foto'},{url:'',type:'reel'},{url:'',type:'foto'},
+  {url:'',type:'carrusel'},{url:'',type:'foto'},{url:'',type:'reel'}
+];
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['grid','manage','embed'][i]===n));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+  if(n==='grid')renderGrid();if(n==='manage')renderSlots();
+}
+function renderGrid(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  slots.forEach((s,i)=>{
+    const c=document.createElement('div');c.className='cell'+(i===0?' next':'');
+    if(s.url){const img=document.createElement('img');img.src=s.url;img.onerror=()=>img.remove();c.appendChild(img);
+      const b=document.createElement('div');b.className='badge';b.style.background=TYPES[s.type]||'#833AB4';b.textContent=s.type;c.appendChild(b);
+    }else{const e=document.createElement('div');e.className='empty';e.innerHTML='<i class="ti ti-photo" style="font-size:18px"></i><span>Post '+(i+1)+'</span>';c.appendChild(e);}
+    const n=document.createElement('div');n.className='num';n.textContent=i+1;c.appendChild(n);
+    g.appendChild(c);
+  });
+}
+function renderSlots(){
+  const l=document.getElementById('slots-list');l.innerHTML='';
+  slots.forEach((s,i)=>{
+    const row=document.createElement('div');row.className='row'+(i===0?' next-row':'');
+    row.draggable=true;
+    const nb=document.createElement('div');nb.className='nbadge';nb.textContent=i+1;
+    const pv=document.createElement('img');pv.className='prev-img';pv.id='pv'+i;if(s.url){pv.src=s.url;pv.onerror=()=>pv.removeAttribute('src');}
+    const inp=document.createElement('input');inp.type='url';inp.className='url-input';inp.placeholder='Link de imagen...';inp.value=s.url;
+    inp.addEventListener('input',e=>{slots[i].url=e.target.value;const p=document.getElementById('pv'+i);if(p){p.src=e.target.value;p.onerror=()=>p.removeAttribute('src');}});
+    inp.addEventListener('change',renderGrid);
+    const sel=document.createElement('select');sel.className='type-sel';sel.style.borderColor=TYPES[s.type];
+    ['foto','reel','carrusel','story'].forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;if(t===s.type)o.selected=true;sel.appendChild(o);});
+    sel.addEventListener('change',e=>{slots[i].type=e.target.value;sel.style.borderColor=TYPES[e.target.value];renderGrid();});
+    const clr=document.createElement('button');clr.className='clr';clr.innerHTML='×';
+    clr.addEventListener('click',()=>{slots[i].url='';inp.value='';const p=document.getElementById('pv'+i);if(p)p.removeAttribute('src');renderGrid();});
+    row.appendChild(nb);row.appendChild(pv);row.appendChild(inp);row.appendChild(sel);row.appendChild(clr);l.appendChild(row);
+    row.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',i));
+    row.addEventListener('dragover',e=>{e.preventDefault();row.style.opacity='0.5';});
+    row.addEventListener('dragleave',()=>row.style.opacity='1');
+    row.addEventListener('drop',e=>{e.preventDefault();row.style.opacity='1';const f=parseInt(e.dataTransfer.getData('text/plain'));if(f!==i){const t=slots[f];slots[f]=slots[i];slots[i]=t;renderSlots();renderGrid();}});
+  });
+}
+function addSlot(){if(slots.length>=18)return;slots.push({url:'',type:'foto'});renderSlots();}
+renderGrid();renderSlots();
+</script>
+</body>
+</html>
